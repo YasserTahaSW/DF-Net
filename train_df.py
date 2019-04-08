@@ -21,7 +21,7 @@ flags.DEFINE_float("flow_smooth_weight", 3.0, "Weight for flow smoothness")
 flags.DEFINE_float("flow_consistency", 0.2, "Weight for forward-backward flow consistency loss.")
 flags.DEFINE_float("cross_consistency", 0.5, "Weight for cross-network consistency loss")
 flags.DEFINE_integer("batch_size", 4, "The size of of a sample batch, must divisible by number of GPUs!")
-flags.DEFINE_integer("num_gpus", 4, "Number of GPUs for training, starting from 0.")
+flags.DEFINE_integer("num_gpus", 2, "Number of GPUs for training, starting from 0.")
 flags.DEFINE_integer("img_height", 320, "Image height")
 flags.DEFINE_integer("img_width", 1152, "Image width")
 flags.DEFINE_integer("seq_length", 5, "Sequence length for each example") # Fixed. Don't change

@@ -13,6 +13,8 @@ from .utils import *
 from .flowlib import flow_to_image
 from .UnFlow import flownet
 
+from testing_all import main as run_tests
+
 FLOW_SCALE = 5.0
 EPS = 1e-3
 
@@ -510,6 +512,7 @@ class DFLearner(BaseLearner):
                         saver_pose.restore(sess, ckpt_pose)
 
                 start_time = time.time()
+                testing_the_nets = 0
                 for step in range(1, opt.max_steps):
                     fetches = {
                         "train": self.train_op,
@@ -539,3 +542,12 @@ class DFLearner(BaseLearner):
                     if step % self.steps_per_epoch == 0 or step == opt.max_steps-1:
                         self.save(sess, opt.checkpoint_dir, gs)
 
+
+                    #added for testing
+                    epoch_no = math.ceil(gs / self.steps_per_epoch)
+                    if epoch_no > testing_the_nets:
+                        testing_the_nets += 1
+                        result_on_tests = run_tests()
+                        if result_on_tests:
+                            with open("testing_results.txt", 'w') as f:
+                                [f.write(str(i)+'\n') for i in result_on_tests]
