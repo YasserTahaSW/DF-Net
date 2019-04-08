@@ -32,7 +32,7 @@ def get_latest_checkpoint():
         return 0
 
 def main():
-
+    print("Entered testing_all file!")
     latest_file = get_latest_checkpoint()
 
     if latest_file:

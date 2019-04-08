@@ -29,7 +29,7 @@ def compile(op=None):
         fn_so = base + ".so"
 
         cuda_lib64_path_arg = "-L /system/apps/biosoft/cuda-8.0"
-        nvcc_cmd = "nvcc -std=c++11 -c -gencode arch=compute_35,code=sm_35 -o {} -I {} -D GOOGLE_CUDA=1 -x cu -Xcompiler -fPIC -I /system/apps/biosoft/cuda-8.0/include"
+        nvcc_cmd = "nvcc -std=c++11 -c -gencode arch=compute_50,code=sm_50 -o {} -I {} -D GOOGLE_CUDA=1 -x cu -Xcompiler -fPIC -I /system/apps/biosoft/cuda-8.0/include"
         nvcc_cmd = nvcc_cmd.format(" ".join([fn_cu_o, fn_cu_cc]),
                                    tf_inc)
         subprocess.check_output(nvcc_cmd, shell=True)
