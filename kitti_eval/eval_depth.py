@@ -19,6 +19,8 @@ def main():
         test_file_list = './data/kitti/val_files_eigen.txt'
     elif args.split == 'test':
         test_file_list = './data/kitti/test_files_eigen.txt'
+    elif args.split == 'small':
+        test_file_list = './data/kitti/test_files_small.txt'
     else:
         assert False
 
@@ -87,5 +89,14 @@ def main():
 
     print("{:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}".format('abs_rel', 'sq_rel', 'rms', 'log_rms', 'd1_all', 'a1', 'a2', 'a3'))
     print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(abs_rel.mean(), sq_rel.mean(), rms.mean(), log_rms.mean(), d1_all.mean(), a1.mean(), a2.mean(), a3.mean()))
+    with open("test.log", 'w') as f:
+        f.write(str(abs_rel.mean())+'\n')
+        f.write(str(sq_rel.mean())+'\n')
+        f.write(str(rms.mean())+'\n')
+        f.write(str(log_rms.mean())+'\n')
+        f.write(str(d1_all.mean())+'\n')
+        f.write(str(a1.mean())+'\n')
+        f.write(str(a2.mean())+'\n')
+        f.write(str(a3.mean())+'\n')
 
 main()

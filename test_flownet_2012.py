@@ -110,18 +110,21 @@ def main(_):
 
             # Save for eval
             if 'test' in FLAGS.dataset_dir:
-                _, scaled_pred = compute_flow_error(np.array(raw_im0)[:,:,:2], pred_flow_val[0,:,:,:], np.array(raw_im0)[:,:,0])
-                png_name = os.path.join(FLAGS.output_dir, new_files[t][0].split('/')[-1])
-                write_flow_png(png_name, scaled_pred)
+                errs[t], scaled_pred = compute_flow_error(np.array(raw_im0)[:,:,:2], pred_flow_val[0,:,:,:], np.array(raw_im0)[:,:,0])
+                #png_name = os.path.join(FLAGS.output_dir, new_files[t][0].split('/')[-1])
+                #write_flow_png(png_name, scaled_pred)
 
             # Save for visual colormap
             if not 'test' in FLAGS.dataset_dir and not FLAGS.output_dir is None:
                 flow_im = flow_to_image(scaled_pred)
-                png_name = os.path.join(FLAGS.output_dir, new_files[t][0].split('/')[-1]).replace('png', 'jpg')
-                cv2.imwrite(png_name, flow_im[:,:,::-1])
+                #png_name = os.path.join(FLAGS.output_dir, new_files[t][0].split('/')[-1]).replace('png', 'jpg')
+                #cv2.imwrite(png_name, flow_im[:,:,::-1])
 
         print('{:>10}'.format('(valid) endpoint error'))
         print('{:10.4f}'.format(errs.mean()))
+
+        with open("test.log", 'w') as f:
+            f.write(str(errs.mean()))
 
 if __name__ == '__main__':
     tf.app.run()

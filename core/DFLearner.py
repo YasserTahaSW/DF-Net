@@ -14,10 +14,13 @@ from .flowlib import flow_to_image
 from .UnFlow import flownet
 
 from testing_all import main as run_tests
+from matplotlib import pyplot as plt
 
 FLOW_SCALE = 5.0
 EPS = 1e-3
-
+FETCHES = None
+DEBUG = False
+TEST_EVERY_EPOCH = False
 class DFLearner(BaseLearner):
     def __init__(self):
         pass
@@ -116,6 +119,7 @@ class DFLearner(BaseLearner):
             self.cross_consistency_loss = cross_consistency_loss
 
     def single_tower_operation(self, optim, tgt_image_dp, src_image_stack_dp, tgt_image_flow, src_image_stack_flow, tgt_image, src_image_stack, intrinsics, model_idx=0):
+        global FETCHES
         opt = self.opt
         if model_idx > 0:
             reuse_variables = True
@@ -261,6 +265,15 @@ class DFLearner(BaseLearner):
                         flow_smooth_loss += layer_weights[s]*opt.flow_smooth_weight*self.compute_smooth_loss(curr_flow_src2tgt)
 
                     flow_proj_image_src2tgt = flow_inverse_warp(curr_src_image_stack[:,:,:,3*i:3*(i+1)], curr_flow_tgt2src)
+
+                    #editing the graph to vis
+                    if DEBUG:
+                        sess1=tf.get_default_graph()
+                        sess1.run(flow_proj_image_src2tgt,FETCHES)
+                        plt.imshow(flow_proj_image_src2tgt, 'message')
+                        print(flow_proj_image_src2tgt)
+                    #ending the edit
+
                     flow_proj_image_tgt2src = flow_inverse_warp(curr_tgt_image, curr_flow_src2tgt)
 
                     # Occlusion
@@ -460,6 +473,8 @@ class DFLearner(BaseLearner):
 
 
     def train(self, opt):
+        global FETCHES
+        global TEST_EVERY_EPOCH
         opt.num_source = opt.seq_length - 1
         # TODO: currently fixed to 5. (5 for FlowNet-C, 4 for SfMLearner)
         opt.num_scales = 5
@@ -518,7 +533,7 @@ class DFLearner(BaseLearner):
                         "train": self.train_op,
                         "global_step": self.global_step
                     }
-
+                    FETCHES = fetches
                     if step % opt.summary_freq == 0:
                         fetches["loss"] = self.total_loss
                         fetches["summary"] = sv.summary_op
@@ -537,17 +552,48 @@ class DFLearner(BaseLearner):
                                     results['loss']))
                         start_time = time.time()
                     
-                    if step % opt.save_latest_freq == 0:
+                    if step % opt.save_latest_freq == 0 or step % self.steps_per_epoch == 0 or step == opt.max_steps-1:
                         self.save(sess, opt.checkpoint_dir, gs)
-                    if step % self.steps_per_epoch == 0 or step == opt.max_steps-1:
-                        self.save(sess, opt.checkpoint_dir, gs)
+                        #added for testing
+                        epoch_no = math.ceil(gs / self.steps_per_epoch)
+                        if epoch_no > 1:
+                            result_on_tests = run_tests()
+                            if result_on_tests:
+                                with open("/system/user/taha/pycharmprojects/DF-Net/testing_results.txt", 'a+') as f:
+                                    print("I am writing test results")
+                                    print(result_on_tests)
+                                    [f.write(str(i) + '\n') for i in result_on_tests]
 
+                    #if the last (#added for testing) block is used then the rest of this script is useless
+                    #it just provides other options for the testing period
 
                     #added for testing
-                    epoch_no = math.ceil(gs / self.steps_per_epoch)
-                    if epoch_no > testing_the_nets:
-                        testing_the_nets += 1
-                        result_on_tests = run_tests()
-                        if result_on_tests:
-                            with open("testing_results.txt", 'w') as f:
-                                [f.write(str(i)+'\n') for i in result_on_tests]
+                    if TEST_EVERY_EPOCH:
+                        epoch_no = math.ceil(gs / self.steps_per_epoch)
+                        if epoch_no > testing_the_nets:
+                            testing_the_nets += 1
+                            result_on_tests = run_tests()
+                            print("gs")
+                            print(gs)
+                            print("steps per epoch")
+                            print(self.steps_per_epoch)
+                            print("epoch number")
+                            print(epoch_no)
+                            print("before writing")
+                            print(result_on_tests)
+                            if result_on_tests:
+                                with open("/system/user/taha/pycharmprojects/DF-Net/testing_results.txt", 'a+') as f:
+                                    print("I am writing")
+                                    print(result_on_tests)
+                                    [f.write(str(i)+'\n') for i in result_on_tests]
+
+                    #this if condition should be changed to else + the magic number 5 resembles the multiples of summary_freq that should be passed for the run+tests to be executed.
+                    if TEST_EVERY_EPOCH:
+                        epoch_no = math.ceil(gs / self.steps_per_epoch)
+                        if step % (opt.summary_freq*5)  == 0 and epoch_no > 1:
+                            result_on_tests = run_tests()
+                            if result_on_tests:
+                                with open("/system/user/taha/pycharmprojects/DF-Net/testing_results.txt", 'a+') as f:
+                                    print("I am writing test results")
+                                    print(result_on_tests)
+                                    [f.write(str(i)+'\n') for i in result_on_tests]
